@@ -59,7 +59,7 @@ git add BetterCrewlink && git commit -m "Bump BetterCrewlink" && git push
 
 ### How the fork is kept distinct from official BCL
 
-These changes are already made in the fork (commit "Brand fork as BetterCrewLink-TOU"):
+These changes are already made in the fork:
 
 * **`package.json` → `repository.url`** points at `rroig7/BetterCrewLink`. The auto-updater
   checks that repo's GitHub releases. That's the group's update channel, and installs won't
@@ -67,6 +67,10 @@ These changes are already made in the fork (commit "Brand fork as BetterCrewLink
 * **`electron-builder.yml`**: `appId: com.whg.bettercrewlink.toumira`,
   `productName: BetterCrewLink-TOU`. It installs alongside official BCL, with its own
   settings, so players re-pick their mic and keybinds once.
+* **`package.json` → `name: bettercrewlink-tou`**. With the default per-user installer, the
+  package name *is* the install folder (`%LOCALAPPDATA%Programs<name>`) and Electron's settings
+  folder (`%APPDATA%<name>`). Left as `bettercrewlink`, the fork would install over official BCL
+  and share its settings.
 * CI installer globs were updated to the new name, and the WinGet workflow was removed (it
   publishes under official BCL's package identity).
 
@@ -180,17 +184,43 @@ If something is wrong, check `LogOutput.log` for `Snapshot failed:` warnings fro
 
 ## Distributing to your group
 
-Each player installs:
+The [TOU-Mira installer](https://github.com/rroig7/tou-mira-installer) does all of this when a
+player ticks **BetterCrewLink-TOU + voice bridge (alpha)**. By hand, each player installs:
 
-1. **TOU-Mira**: the official release, same version the bridge was built against.
-2. **`TouMiraBclBridge.dll`** in `BepInEx/plugins/`.
-3. **Our BCL build**: the installer from `BetterCrewlink/dist/`. Publish it as a GitHub release
-   on `rroig7/BetterCrewLink`; installed copies then auto-update from there. The release version
-   must be higher than the installed one (bump `version` in `BetterCrewlink/package.json`).
+1. **TOU-Mira**: an official release listed in the bridge's "Built for TOU-Mira" line.
+2. **`TouMiraBclBridge.dll`** in `BepInEx/plugins/`
+   ([releases](https://github.com/rroig7/whg-tou-mira/releases)).
+3. **BetterCrewLink-TOU**
+   ([releases](https://github.com/rroig7/BetterCrewLink/releases)). It auto-updates from there.
 
 Someone on official BCL still connects and talks normally. They just won't apply the TOU rules
 as a listener. The speaker-side mute still silences a jailed or blackmailed player for them, as
 long as that *player* has the bridge and your build.
+
+## Releasing BetterCrewLink-TOU
+
+Releases live on [rroig7/BetterCrewLink](https://github.com/rroig7/BetterCrewLink/releases). The
+in-app auto-updater and the TOU-Mira installer both download from there.
+
+```sh
+cd BetterCrewlink
+npm version 3.2.3-alpha.2 --no-git-tag-version   # semver; "-alpha.N" keeps the updater on prereleases
+npm run typecheck && npm run lint && npm run format:check
+npm run dist:64                                  # -> dist/
+git commit -am "Release BetterCrewLink-TOU 3.2.3-alpha.2" && git push
+
+# electron-builder names the file with spaces, but latest.yml refers to dashes, and GitHub would
+# turn spaces into dots. Upload under the dashed names or auto-update breaks.
+V=3.2.3-alpha.2; mkdir -p ../.bcl-release && rm -f ../.bcl-release/*
+cp "dist/BetterCrewLink-TOU Setup $V.exe" "../.bcl-release/BetterCrewLink-TOU-Setup-$V.exe"
+cp "dist/BetterCrewLink-TOU Setup $V.exe.blockmap" "../.bcl-release/BetterCrewLink-TOU-Setup-$V.exe.blockmap"
+cp dist/latest.yml ../.bcl-release/
+gh release create "v$V" ../.bcl-release/* -R rroig7/BetterCrewLink --target tou-mira   --prerelease --title "BetterCrewLink-TOU v$V" --notes "..."
+cd .. && git add BetterCrewlink && git commit -m "Bump BetterCrewlink to $V" && git push
+```
+
+The installer is unsigned, so Windows SmartScreen warns players who run it by hand. The TOU-Mira
+installer runs it silently from a temp download, which doesn't trigger that warning.
 
 ## Releasing the bridge
 
