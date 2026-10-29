@@ -105,11 +105,16 @@ report results; don't claim in-game behaviour works.
 
 ## Releases are consumed by the installer
 
-`rroig7/tou-mira-installer` (sibling folder `../tou-mira-installer`) downloads bridge releases
-from this repo. Don't break its contract without updating it too:
-* the asset is named `TouMiraBclBridge.dll`;
-* the release notes contain `Built for TOU-Mira: <tag>[, <tag>...]` listing every supported TOU-Mira version;
-* prereleases are allowed, and the newest non-draft release with the asset wins.
+`rroig7/tou-mira-installer` (sibling folder `../tou-mira-installer`) installs BetterCrewLink-TOU and
+the bridge. Don't break its contract without updating it too. Cut releases with
+`scripts/release-bcl-tou.sh`:
+* **rroig7/BetterCrewLink releases** carry `BetterCrewLink-TOU-Setup-<version>.exe` and
+  `TouMiraBclBridge-<tou-mira-tag>.dll` per supported TOU-Mira version. The latter is compiled
+  against that release's official DLLs. The installer takes the newest non-draft release
+  (prereleases included) with a setup, and the newest with a bridge matching the installed
+  TOU-Mira tag.
+* **Legacy, for installer 1.3.0:** this repo's releases carry one `TouMiraBclBridge.dll`, with
+  `Built for TOU-Mira: <tag>[, <tag>...]` in the notes.
 
 ## Style
 

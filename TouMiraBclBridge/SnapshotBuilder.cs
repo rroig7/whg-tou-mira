@@ -82,7 +82,25 @@ internal sealed class SnapshotBuilder
         json.WriteBoolean("blinded",
             player.HasModifier<EclipsalBlindModifier>() || player.HasModifier<GrenadierFlashModifier>());
         json.WriteBoolean("hysteria", player.GetModifier<HypnotisedModifier>()?.HysteriaActive == true);
+        WriteMediumSpirit(json, player);
+        json.WriteNumber("mediatedBy", player.GetModifier<MediatedModifier>()?.MediumId ?? -1);
         json.WriteEndObject();
+    }
+
+    /// <summary>The Medium's spirit (ghost form) position as [x, y], or null when not in spirit form.</summary>
+    private static void WriteMediumSpirit(Utf8JsonWriter json, PlayerControl player)
+    {
+        if (player.Data?.Role is MediumRole { Spirit: { } spirit } && spirit != null)
+        {
+            var position = spirit.transform.position;
+            json.WriteStartArray("mediumSpirit");
+            json.WriteNumberValue(position.x);
+            json.WriteNumberValue(position.y);
+            json.WriteEndArray();
+            return;
+        }
+
+        json.WriteNull("mediumSpirit");
     }
 
     private static int ControllerId(PlayerControl? controller) => controller != null ? controller.PlayerId : -1;

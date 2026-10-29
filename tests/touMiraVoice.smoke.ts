@@ -159,9 +159,62 @@ async function main() {
 	// listener muffle
 	const blind = state(GameState.TASKS, [me, other], snapOf('tasks', [tp(0, { blinded: true }), tp(1)]));
 	const muffled = gain(blind, me, other);
-	assert.ok(muffled.muffle && muffled.muffle.type === 'lowpass' && muffled.gain === 1);
+	assert.ok(muffled.muffle && muffled.muffle.type === 'lowpass' && muffled.gain > 1, 'muffled and boosted');
 	assert.strictEqual(gain(blind, me, other, { ...lobby, touMira_muffleBlinded: false }).muffle, false);
 	console.log('ok  eclipsal/grenadier: listener muffled');
+
+	// jail deafen: the jailee hears nobody in meetings, only with the option on and a valid jail
+	const jailee = state(
+		GameState.DISCUSSION,
+		[me, other],
+		snapOf('meeting', [tp(0, { jailed: true, jailorAlive: true }), tp(1)])
+	);
+	const deafenOn = { ...lobby, touMira_deafenJailedInMeetings: true };
+	assert.strictEqual(gain(jailee, me, other).gain, 1, 'deafen is off by default');
+	assert.strictEqual(gain(jailee, me, other, deafenOn).gain, 0);
+	const jaileeDeadJailor = state(
+		GameState.DISCUSSION,
+		[me, other],
+		snapOf('meeting', [tp(0, { jailed: true, jailorAlive: false }), tp(1)])
+	);
+	assert.strictEqual(gain(jaileeDeadJailor, me, other, deafenOn).gain, 1);
+	assert.strictEqual(
+		gain(jaileeDeadJailor, me, other, { ...deafenOn, touMira_jailPersistsAfterJailorDeath: true }).gain,
+		0
+	);
+	console.log('ok  jailor: optional deafen in meetings');
+
+	// medium: spirit at (20,0); default mode is Ghost -> Medium
+	const medium = player(0, 0, 0, { isLocal: true });
+	const nearSpiritAlive = player(1, 21, 0);
+	const nearBodyAlive = player(2, 1, 0);
+	const mediatedGhost = player(3, 21, 0, { isDead: true });
+	const otherGhost = player(4, 21, 0, { isDead: true });
+	const med = state(
+		GameState.TASKS,
+		[medium, nearSpiritAlive, nearBodyAlive, mediatedGhost, otherGhost],
+		snapOf('tasks', [
+			tp(0, { mediumSpirit: [20, 0] }),
+			tp(1),
+			tp(2),
+			tp(3, { dead: true, mediatedBy: 0 }),
+			tp(4, { dead: true }),
+		])
+	);
+	assert.strictEqual(gain(med, medium, nearSpiritAlive).gain, 1, 'medium listens from the spirit');
+	assert.strictEqual(gain(med, medium, nearBodyAlive).gain, 0, 'not from its body');
+	assert.strictEqual(gain(med, medium, mediatedGhost).gain, 1, 'hears its mediated ghost');
+	assert.strictEqual(gain(med, medium, otherGhost).gain, 0, 'but not other ghosts');
+	const noMedium = { ...lobby, touMira_mediumGhostVoice: 0 };
+	assert.strictEqual(gain(med, medium, mediatedGhost, noMedium).gain, 0, 'None: no ghost voice');
+	assert.strictEqual(gain(med, medium, nearBodyAlive, noMedium).gain, 1, 'None: hears from its body');
+	// the other direction: who hears the Medium while it's in spirit form
+	assert.strictEqual(gain(med, nearBodyAlive, medium).gain, 0, 'living players cannot hear the Medium');
+	assert.strictEqual(gain(med, mediatedGhost, medium).gain, 0, 'ghosts only with Medium -> Ghost');
+	const both = gain(med, mediatedGhost, medium, { ...lobby, touMira_mediumGhostVoice: 3 });
+	assert.strictEqual(both.gain, 1, 'Both: ghosts hear the Medium');
+	assert.deepStrictEqual(both.panPosition, [-1, 0], 'from the spirit');
+	console.log('ok  medium: spirit-form ghost voice in every mode');
 
 	assert.strictEqual(touMiraMuteReason(bm('tasks', GameState.TASKS, { swooped: true }), lobby, other), 'swooped');
 	assert.strictEqual(touMiraMuteReason(bm('tasks', GameState.TASKS, { hacked: true }), lobby, other), 'hacked');

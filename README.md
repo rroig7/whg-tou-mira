@@ -110,6 +110,8 @@ for how each role *should* affect voice.
 | Parasite also hears from victim | hears around itself **and** its victim |
 | Mute Swooper while swooped, mute Glitch-hacked | tasks + meetings |
 | Muffle hearing when Eclipsal-blinded / Grenadier-flashed / in Mass Hysteria | task round |
+| Deafen jailed player (off by default) | meeting; the jailee hears nobody |
+| Medium ghost voice: None / Medium→Ghost / Ghost→Medium (default) / Both | task round, while the Medium is in spirit form: it listens from the spirit, living players can't hear it, and it talks with the ghosts it mediated |
 
 ## Building
 
@@ -197,64 +199,58 @@ Someone on official BCL still connects and talks normally. They just won't apply
 as a listener. The speaker-side mute still silences a jailed or blackmailed player for them, as
 long as that *player* has the bridge and your build.
 
-## Releasing BetterCrewLink-TOU
+## Releasing BetterCrewLink-TOU (app + bridge)
 
-Releases live on [rroig7/BetterCrewLink](https://github.com/rroig7/BetterCrewLink/releases). The
-in-app auto-updater and the TOU-Mira installer both download from there.
+A release on [rroig7/BetterCrewLink](https://github.com/rroig7/BetterCrewLink/releases) carries
+the app **and one voice bridge per supported TOU-Mira version**:
 
-```sh
-cd BetterCrewlink
-npm version 3.2.3-alpha.2 --no-git-tag-version   # semver; "-alpha.N" keeps the updater on prereleases
-npm run typecheck && npm run lint && npm run format:check
-npm run dist:64                                  # -> dist/
-git commit -am "Release BetterCrewLink-TOU 3.2.3-alpha.2" && git push
+| Asset | Used by |
+|---|---|
+| `BetterCrewLink-TOU-Setup-<version>.exe`, `.blockmap`, `latest.yml` | the in-app auto-updater, the TOU-Mira installer |
+| `TouMiraBclBridge-<tou-mira-tag>.dll` (e.g. `TouMiraBclBridge-1.7.9-beta1.dll`) | the TOU-Mira installer |
 
-# electron-builder names the file with spaces, but latest.yml refers to dashes, and GitHub would
-# turn spaces into dots. Upload under the dashed names or auto-update breaks.
-V=3.2.3-alpha.2; mkdir -p ../.bcl-release && rm -f ../.bcl-release/*
-cp "dist/BetterCrewLink-TOU Setup $V.exe" "../.bcl-release/BetterCrewLink-TOU-Setup-$V.exe"
-cp "dist/BetterCrewLink-TOU Setup $V.exe.blockmap" "../.bcl-release/BetterCrewLink-TOU-Setup-$V.exe.blockmap"
-cp dist/latest.yml ../.bcl-release/
-gh release create "v$V" ../.bcl-release/* -R rroig7/BetterCrewLink --target tou-mira   --prerelease --title "BetterCrewLink-TOU v$V" --notes "..."
-cd .. && git add BetterCrewlink && git commit -m "Bump BetterCrewlink to $V" && git push
-```
-
-The installer is unsigned, so Windows SmartScreen warns players who run it by hand. The TOU-Mira
-installer runs it silently from a temp download, which doesn't trigger that warning.
-
-## Releasing the bridge
-
-Bridge releases live on this repo's GitHub releases page. The
-[TOU-Mira installer](https://github.com/rroig7/tou-mira-installer) downloads the newest one,
-prereleases included, when a player ticks its bridge checkbox. It relies on two conventions:
-
-* The DLL is attached as an asset named exactly **`TouMiraBclBridge.dll`**.
-* The release notes contain the line **`Built for TOU-Mira: <tag>[, <tag>…]`**, listing every
-  TOU-Mira release this DLL works with (e.g. `1.7.3, 1.7.9-beta1`). The installer warns when it
-  installs a TOU-Mira version that isn't listed.
-
-**Compile releases against the oldest TOU-Mira release you support**, using its official DLLs.
-The bridge references TOU-Mira by assembly version. A newer installed TOU-Mira satisfies an older
-reference, but an older one may refuse a newer reference.
-
-Before listing a version as supported, check that the bridge compiles against that version's
-DLLs too. For 1.7.3 and 1.7.9-beta1 this was verified: compiled against each, the bridge's
-external references were identical apart from TOU-Mira's assembly version.
+This is how releases are tied to TOU-Mira versions. Each bridge is compiled against that TOU-Mira
+release's official DLLs. The installer installs the one matching the player's TOU-Mira version,
+taken from the newest release that has one. When a newer app or a different matching bridge
+exists, it shows a "voice chat update available" banner.
 
 ```sh
-# 1. Bump <Version> in TouMiraBclBridge.csproj (and [BepInPlugin] in BridgePlugin.cs when it's not a pre-release bump).
-# 2. Fetch the oldest supported release's official DLLs and build against them:
-cd TouMiraBclBridge
-gh release download 1.7.3 -R AU-Avengers/TOU-Mira -p TownOfUsMira.dll -p MiraAPI.dll -D ../.release-refs/1.7.3 --clobber
-REFS="$(cd ../.release-refs/1.7.3 && pwd -W)/"
-dotnet build -c Release --no-incremental -p:TouMiraDir="$REFS" -p:MiraApiDir="$REFS"
-# 3. Publish
-gh release create v0.1.0-alpha.3 bin/Release/net6.0/TouMiraBclBridge.dll --target main \
-  --prerelease --title "TOU-Mira Bridge v0.1.0-alpha.3" \
-  --notes "Built for TOU-Mira: 1.7.3, 1.7.9-beta1"
+# commit your changes first; the script refuses to run on a dirty tree
+scripts/release-bcl-tou.sh 3.2.3-alpha.3 1.7.9-beta1 1.7.3
 ```
 
-Use `--prerelease` while in alpha or beta. Drop it once the bridge is stable.
+The script:
+
+1. Downloads each listed TOU-Mira release's official `TownOfUsMira.dll` and `MiraAPI.dll`, and
+   builds a bridge against them.
+2. Bumps and commits the app version if needed, runs typecheck, lint and format checks, and
+   builds the installer.
+3. Uploads everything under the names above. electron-builder's file names contain spaces, but
+   `latest.yml` refers to dashes, so the script renames them.
+4. Publishes as a prerelease when the version contains `-`, and commits the submodule pointer
+   here.
+
+Edit the release notes on GitHub afterwards to say what changed.
+
+Use a semver version. `-alpha.N` keeps installed apps updating through prereleases. The app is
+unsigned, so Windows SmartScreen warns players who run the setup by hand. The TOU-Mira installer
+runs it silently from a temp download, which doesn't trigger that warning.
+
+### Legacy bridge releases on this repo
+
+[Bridge releases on this repo](https://github.com/rroig7/whg-tou-mira/releases) (a single
+`TouMiraBclBridge.dll` plus a `Built for TOU-Mira: <tag>[, <tag>…]` line) are what TOU-Mira
+installer **1.3.0** reads. Newer installers read the per-version assets above. To keep 1.3.0 users
+current, also publish the bridge here.
+
+Compile that DLL against the *oldest* TOU-Mira version it lists. A newer installed TOU-Mira
+satisfies an older assembly reference, but not the other way round. Before listing a version,
+check that the bridge's external references are identical against it.
+
+```sh
+mkdir -p .bcl-release/legacy && cp .bcl-release/TouMiraBclBridge-1.7.3.dll .bcl-release/legacy/TouMiraBclBridge.dll
+gh release create v0.2.0-alpha.1 .bcl-release/legacy/TouMiraBclBridge.dll   --target main --prerelease --title "TOU-Mira Bridge v0.2.0-alpha.1"   --notes "Built for TOU-Mira: 1.7.3, 1.7.9-beta1"
+```
 
 ## Updating TOU-Mira
 
@@ -297,8 +293,7 @@ real logic is in new `touMira*` / `TouMira*` files, so merges stay small.
 
 * **Jailor "Allow Voice" button.** This needs an in-game meeting button plus an RPC, which means
   the bridge would have to be installed by every player.
-* **Medium ↔ ghost voice**, and **Vampire / Lovers team radio**. BCL only has an impostor radio
-  today.
+* **Vampire / Lovers team radio.** BCL only has an impostor radio today.
 * **Crewpostor uses the impostor radio.**
 * **Overlay privacy:** BCL's overlay shows a talking player's *real* avatar. That leaks
   Morphling, Glitch-mimic and Camouflage identities. TOU-Mira's Perfect Comms integration

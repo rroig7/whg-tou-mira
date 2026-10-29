@@ -9,7 +9,7 @@ namespace TouMiraBclBridge;
 /// blackmailed, controlled, ...) and serves them on localhost for BetterCrewLink. It sends no game
 /// RPCs, so it doesn't need to be installed by every player in the lobby.
 /// </summary>
-[BepInPlugin(Id, "TOU-Mira BetterCrewLink Bridge", "0.1.0")]
+[BepInPlugin(Id, "TOU-Mira BetterCrewLink Bridge", "0.2.0")]
 [BepInProcess("Among Us.exe")]
 [BepInDependency(TownOfUsPlugin.Id)]
 public sealed class BridgePlugin : BasePlugin
