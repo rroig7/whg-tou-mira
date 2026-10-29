@@ -5,7 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <DebugType>embedded</DebugType>
-        <Version>0.1.0-alpha.1</Version>
+        <Version>0.1.0-alpha.2</Version>
         <Description>Streams Town of Us: Mira player state to BetterCrewLink.</Description>
 
         <!-- Compile against the exact TOU-Mira build your group plays with. By default this is the

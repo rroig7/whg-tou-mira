@@ -108,7 +108,7 @@ report results; don't claim in-game behaviour works.
 `rroig7/tou-mira-installer` (sibling folder `../tou-mira-installer`) downloads bridge releases
 from this repo. Don't break its contract without updating it too:
 * the asset is named `TouMiraBclBridge.dll`;
-* the release notes contain `Built for TOU-Mira: <tag>`;
+* the release notes contain `Built for TOU-Mira: <tag>[, <tag>...]` listing every supported TOU-Mira version;
 * prereleases are allowed, and the newest non-draft release with the asset wins.
 
 ## Style

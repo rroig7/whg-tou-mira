@@ -199,16 +199,29 @@ Bridge releases live on this repo's GitHub releases page. The
 prereleases included, when a player ticks its bridge checkbox. It relies on two conventions:
 
 * The DLL is attached as an asset named exactly **`TouMiraBclBridge.dll`**.
-* The release notes contain the line **`Built for TOU-Mira: <tag>`** (e.g. `1.7.9-beta1`). The
-  installer compares it with the TOU-Mira version it installs and warns on a mismatch.
+* The release notes contain the line **`Built for TOU-Mira: <tag>[, <tag>…]`**, listing every
+  TOU-Mira release this DLL works with (e.g. `1.7.3, 1.7.9-beta1`). The installer warns when it
+  installs a TOU-Mira version that isn't listed.
+
+**Compile releases against the oldest TOU-Mira release you support**, using its official DLLs.
+The bridge references TOU-Mira by assembly version. A newer installed TOU-Mira satisfies an older
+reference, but an older one may refuse a newer reference.
+
+Before listing a version as supported, check that the bridge compiles against that version's
+DLLs too. For 1.7.3 and 1.7.9-beta1 this was verified: compiled against each, the bridge's
+external references were identical apart from TOU-Mira's assembly version.
 
 ```sh
-# 1. Bump the version in TouMiraBclBridge.csproj (<Version>) and BridgePlugin.cs ([BepInPlugin]).
-# 2. Build against the pinned TOU-Mira (see Building), then:
-cd TouMiraBclBridge && dotnet build -c Release
-gh release create v0.2.0-alpha.1 bin/Release/net6.0/TouMiraBclBridge.dll \
-  --prerelease --title "TOU-Mira Bridge v0.2.0-alpha.1" \
-  --notes "Built for TOU-Mira: $(git -C ../TOU-Mira describe --tags)"
+# 1. Bump <Version> in TouMiraBclBridge.csproj (and [BepInPlugin] in BridgePlugin.cs when it's not a pre-release bump).
+# 2. Fetch the oldest supported release's official DLLs and build against them:
+cd TouMiraBclBridge
+gh release download 1.7.3 -R AU-Avengers/TOU-Mira -p TownOfUsMira.dll -p MiraAPI.dll -D ../.release-refs/1.7.3 --clobber
+REFS="$(cd ../.release-refs/1.7.3 && pwd -W)/"
+dotnet build -c Release --no-incremental -p:TouMiraDir="$REFS" -p:MiraApiDir="$REFS"
+# 3. Publish
+gh release create v0.1.0-alpha.3 bin/Release/net6.0/TouMiraBclBridge.dll --target main \
+  --prerelease --title "TOU-Mira Bridge v0.1.0-alpha.3" \
+  --notes "Built for TOU-Mira: 1.7.3, 1.7.9-beta1"
 ```
 
 Use `--prerelease` while in alpha or beta. Drop it once the bridge is stable.
