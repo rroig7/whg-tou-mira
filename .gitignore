@@ -1,0 +1,3 @@
+tests/out.cjs
+.scratch/
+*.bak/

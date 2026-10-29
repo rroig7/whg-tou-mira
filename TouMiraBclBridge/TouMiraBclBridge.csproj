@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DebugType>embedded</DebugType>
+        <Version>0.1.0</Version>
+        <Description>Streams Town of Us: Mira player state to BetterCrewLink.</Description>
+
+        <!-- Compile against the exact TOU-Mira build your group plays with. By default this is the
+             sibling ../TOU-Mira checkout (build it first); override with
+             dotnet build -p:TouMiraDir=... -p:MiraApiDir=... to point at other DLLs, e.g. your game's
+             BepInEx/plugins folder. -->
+        <TouMiraDir Condition="'$(TouMiraDir)' == ''">$(MSBuildThisFileDirectory)..\TOU-Mira\TownOfUs\bin\Release\</TouMiraDir>
+        <MiraApiDir Condition="'$(MiraApiDir)' == ''">$(MSBuildThisFileDirectory)..\TOU-Mira\GitSubmodules\MiraAPI\MiraAPI\bin\Release\net6.0\</MiraApiDir>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- Versions match TOU-Mira's AmongUs.props; bump them together. -->
+        <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.735" Private="false" ExcludeAssets="runtime;native"/>
+        <PackageReference Include="AmongUs.GameLibs.Steam" Version="2026.9.29" PrivateAssets="all"/>
+        <PackageReference Include="Reactor" Version="2.5.0-ci.371" PrivateAssets="all" ExcludeAssets="runtime"/>
+        <PackageReference Include="BepInEx.IL2CPP.MSBuild" Version="2.1.0-rc.1" PrivateAssets="all" ExcludeAssets="runtime"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="TownOfUsMira" HintPath="$(TouMiraDir)TownOfUsMira.dll" Private="false"/>
+        <Reference Include="MiraAPI" HintPath="$(MiraApiDir)MiraAPI.dll" Private="false"/>
+    </ItemGroup>
+
+    <Target Name="CopyToGame" AfterTargets="Build" Condition="'$(AmongUs)' != ''">
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(AmongUs)/BepInEx/plugins/"/>
+    </Target>
+</Project>

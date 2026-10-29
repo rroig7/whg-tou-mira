@@ -1,0 +1,7 @@
+[submodule "BetterCrewlink"]
+	path = BetterCrewlink
+	url = https://github.com/rroig7/BetterCrewLink.git
+	branch = tou-mira
+[submodule "TOU-Mira"]
+	path = TOU-Mira
+	url = https://github.com/AU-Avengers/TOU-Mira.git
