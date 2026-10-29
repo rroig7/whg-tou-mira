@@ -192,6 +192,27 @@ Someone on official BCL still connects and talks normally. They just won't apply
 as a listener. The speaker-side mute still silences a jailed or blackmailed player for them, as
 long as that *player* has the bridge and your build.
 
+## Releasing the bridge
+
+Bridge releases live on this repo's GitHub releases page. The
+[TOU-Mira installer](https://github.com/rroig7/tou-mira-installer) downloads the newest one,
+prereleases included, when a player ticks its bridge checkbox. It relies on two conventions:
+
+* The DLL is attached as an asset named exactly **`TouMiraBclBridge.dll`**.
+* The release notes contain the line **`Built for TOU-Mira: <tag>`** (e.g. `1.7.9-beta1`). The
+  installer compares it with the TOU-Mira version it installs and warns on a mismatch.
+
+```sh
+# 1. Bump the version in TouMiraBclBridge.csproj (<Version>) and BridgePlugin.cs ([BepInPlugin]).
+# 2. Build against the pinned TOU-Mira (see Building), then:
+cd TouMiraBclBridge && dotnet build -c Release
+gh release create v0.2.0-alpha.1 bin/Release/net6.0/TouMiraBclBridge.dll \
+  --prerelease --title "TOU-Mira Bridge v0.2.0-alpha.1" \
+  --notes "Built for TOU-Mira: $(git -C ../TOU-Mira describe --tags)"
+```
+
+Use `--prerelease` while in alpha or beta. Drop it once the bridge is stable.
+
 ## Updating TOU-Mira
 
 ```sh

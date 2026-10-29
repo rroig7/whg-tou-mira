@@ -103,6 +103,14 @@ report results; don't claim in-game behaviour works.
 * `TOU-Mira/` is a submodule pinned to a release tag of official AU-Avengers/TOU-Mira. Never
   commit inside it. Changing the pin is a deliberate "update TOU-Mira" step (see README).
 
+## Releases are consumed by the installer
+
+`rroig7/tou-mira-installer` (sibling folder `../tou-mira-installer`) downloads bridge releases
+from this repo. Don't break its contract without updating it too:
+* the asset is named `TouMiraBclBridge.dll`;
+* the release notes contain `Built for TOU-Mira: <tag>`;
+* prereleases are allowed, and the newest non-draft release with the asset wins.
+
 ## Style
 
 * **BCL:** tabs, single quotes, Prettier (`.prettierrc.yaml`). Files are CRLF in the working
