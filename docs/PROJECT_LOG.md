@@ -15,7 +15,7 @@ their own installer. The user (rroig7) wants many more interactions over time.
 | Repo | Local path | Branch | Latest |
 |---|---|---|---|
 | `rroig7/whg-tou-mira` (umbrella: bridge, docs, tests, release script) | `~/dev/whg-tou-mira` | **`increase-muffle`** (user's branch; `main` is behind it) | bridge releases `v0.1.0-alpha.1/2` and **`v0.2.0-alpha.1`** (legacy path, for installer 1.3.0) |
-| `rroig7/BetterCrewLink` (fork, submodule `BetterCrewlink/`) | `whg-tou-mira/BetterCrewlink` | `tou-mira` (`upstream` = OhMyGuus, `nightly`) | **`v3.2.3-alpha.2`**: app + `TouMiraBclBridge-1.7.3.dll` + `TouMiraBclBridge-1.7.9-beta1.dll` |
+| `rroig7/BetterCrewLink` (fork, submodule `BetterCrewlink/`) | `whg-tou-mira/BetterCrewlink` | `tou-mira` (`upstream` = OhMyGuus, `nightly`) | **`v3.2.3-alpha.3`** (adds the bridge status on the main menu): app + `TouMiraBclBridge-1.7.3.dll` + `TouMiraBclBridge-1.7.9-beta1.dll` |
 | `AU-Avengers/TOU-Mira` (official, submodule `TOU-Mira/`, never modified) | `whg-tou-mira/TOU-Mira` | pinned `1.7.9-beta1` | n/a |
 | `rroig7/tou-mira-installer` (Python/PySide6, PyInstaller exe) | `~/dev/tou-mira-installer` | **`tou-bcl-integration`** (user's branch; `main` at 1.2.1) | **`v1.4.0`** (latest, tagged at `b482b2c`) |
 
@@ -121,9 +121,10 @@ The reference spec for rule semantics is TOU-Mira's own
 
 - **Nothing has been tested in a live game.** The in-game bridge behaviour and coordinates
   (spirit vs. player positions) are unverified.
-- The user asked for `alpha.3` "with muffle changes", but no changes newer than `alpha.2` were
-  found. Their edits may be unsaved in their editor. Release with
-  `scripts/release-bcl-tou.sh 3.2.3-alpha.3 1.7.9-beta1 1.7.3` once they've saved.
+- `alpha.3` (2026-10-29) shipped the main-menu bridge status. No muffle changes newer than
+  `alpha.2` existed, so if the user still has unsaved muffle edits they need an `alpha.4`. The
+  installer needed no change: it discovers releases, and its `find_for`/`latest_setup` were
+  checked against the live `alpha.3` release.
 - Merge `increase-muffle` → `main` (whg) and `tou-bcl-integration` → `main` (installer) when the
   user is ready.
 - Backlog:
