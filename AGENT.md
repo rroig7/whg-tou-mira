@@ -1,7 +1,9 @@
 # AGENT.md
 
 Instructions for AI coding agents working in this repo. Read `README.md` for the human-facing
-overview; this file covers what you need to change code safely.
+overview; this file covers what you need to change code safely. For the project's history,
+current release state, past decisions, gotchas and open items, read `docs/PROJECT_LOG.md`, and
+update it when you release or make a decision.
 
 ## What this is
 
